@@ -16,9 +16,12 @@ pipeline {
     stage('Deployment') {
       steps {
         dir('APP') {
-          git branch: 'main', url: "https://github.com/yamunasreeoggu/${COMPONENT}"
+          git branch: 'main', url: "https://github.com/yamunasreeoggu/${COMPONENT}" # frontend has many files due to which helm cannot handle pods creation, hence we are using below dir(HELM) step to change the dir to run the pipeline
         }
-        sh 'helm upgrade -i ${COMPONENT} . -f APP/helm/${ENV}.yaml --set appVersion=${VERSION}'
+        dir('HELM') {
+          git branch: 'main', url: "https://github.com/yamunasreeoggu/expense_helm_chart"
+          sh 'helm upgrade -i ${COMPONENT} . -f ${WORKSPACE}/APP/helm/${ENV}.yaml --set appVersion=${VERSION}'
+        }
       }
     }
   }
