@@ -1,0 +1,33 @@
+{{ if .Values.job.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.appName }}-schema
+spec:
+  template:
+    spec:
+      serviceAccountName: {{ .Values.appName }}
+      restartPolicy: Never
+      initContainers:
+        - name: aws-param
+          image: 492681564023.dkr.ecr.us-east-1.amazonaws.com/expense_parameter_init_container:{{ .Values.initContainers.imageVersion }}
+          env:
+            - name: INPUT
+              value: {{ .Values.job.INPUT }}
+          volumeMounts:
+            - mountPath: /config
+              name: config
+      containers:
+        - name: schema
+          image: 492681564023.dkr.ecr.us-east-1.amazonaws.com/expense_schema_load:{{ .Values.job.imageVersion }}
+          env:
+            - name: COMPONENT
+              value: {{ .Values.appName }}
+          volumeMounts:
+            - mountPath: /config
+              name: config
+      volumes:
+        - name: config
+          emptyDir:
+            sizeLimit: 5Mi
+{{ end }}

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}
+  labels:
+    app: {{ .Values.appName }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      serviceAccountName: {{ .Values.appName }}
+    {{ if .Values.initContainers.enabled }}
+      volumes:
+        - name: config
+          emptyDir:
+            sizeLimit: 5Mi
+      initContainers:
+        - name: aws-param
+          image: 492681564023.dkr.ecr.us-east-1.amazonaws.com/expense_parameter_init_container:{{ .Values.initContainers.imageVersion }}
+          env:
+            - name: INPUT
+              value: {{ .Values.initContainers.INPUT }}
+          volumeMounts:
+            - mountPath: /config
+              name: config
+      containers:
+        - name: {{ .Values.appName }}
+          image: 492681564023.dkr.ecr.us-east-1.amazonaws.com/{{ .Values.appName }}:{{ .Values.appVersion }}
+          volumeMounts:
+            - mountPath: /config
+              name: config
+    {{ else }}
+      containers:
+        - name: {{ .Values.appName }}
+          image: 492681564023.dkr.ecr.us-east-1.amazonaws.com/{{ .Values.appName }}:{{ .Values.appVersion }}
+    {{ end }}
