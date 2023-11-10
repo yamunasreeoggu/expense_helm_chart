@@ -40,3 +40,13 @@ spec:
         - name: {{ .Values.appName }}
           image: 492681564023.dkr.ecr.us-east-1.amazonaws.com/{{ .Values.appName }}:{{ .Values.appVersion }}
     {{ end }}
+          readinessProbe:
+            tcpSocket:
+              port : {{ .Values.service.targetPort }}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: { { .Values.service.targetPort } }
+            initialDelaySeconds: 10
+            periodSeconds: 5
